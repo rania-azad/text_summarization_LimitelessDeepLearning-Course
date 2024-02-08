@@ -70,7 +70,7 @@ class Train(object):
 
 		logits = self.model(inputs)[0]
 		
-		idx = batch[] # index of separator token
+		idx = batch['s_idx'].item()  # index of separator token # index of separator token
 		#print('logits: {}'.format(logits.shape))
 		#print('idx: {}'.format(idx))
 		# only consider loss on reference summary just like seq2seq models
@@ -100,10 +100,9 @@ class Train(object):
 		# TODO: Complete training loop
 		self.model.train()
 		total_train_loss = 0
-
 		for step, batch in enumerate(train_dataloader):
-			self.model.  # put all gradients to zero 
-			shift_logits, shift_labels =  # prepare batch data
+			self.optimizer.zero_grad()  # put all gradients to zero
+			shift_logits, shift_labels = self.process_train_batch(batch) # prepare batch data
 
 			loss = self.loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 			loss = loss/self.gradient_accumulation_steps
