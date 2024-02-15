@@ -15,16 +15,14 @@ from torchvision import transforms, utils
 class GPT2Dataset(Dataset):
   def __init__(self, df):
     self.encodings = df['encodings'].to_list()
-    print(self.encodings)
     self.sum_idx = df['text_len'].to_list()
   
   def __len__(self):
     return len(self.sum_idx)
 
   def __getitem__(self, idx):
-    input_ids = self.encodings[idx]["input_ids"]
-    text = torch.tensor(input_ids)# exract input_ids from encodings
-    attn_mask = torch.tensor(self.encodings.iloc[idx]['attention_mask']) # exract mask from encodings
+    text = torch.tensor() # exract input_ids from encodings
+    attn_mask = torch.tensor() # exract mask from encodings
     s_idx = self.sum_idx[idx] + 2 # add bos and cls
     out = {'text': text, 'mask': attn_mask, 's_idx': s_idx}
     return out 
