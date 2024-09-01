@@ -4,6 +4,8 @@ def apply_tokenizer(tokenizer, text, sum, max_len):
 	# Concatenate text and summary and in-between add a special token 
 	# <BOS> is beginning of sentence 
 	# <EOS> is end of sentence
+	  ts =  text + ' <SUMMARY> ' + sum
+    #encodings = tokenizer('<BOS> ' + ts + ' <EOS>', truncation=True, max_length=max_len, padding="max_length")
 	return tokenizer('<BOS>'  '<EOS>', truncation=True, max_length=max_len, padding="max_length")
 
 def tokenize_text(tokenizer, df, max_len):
