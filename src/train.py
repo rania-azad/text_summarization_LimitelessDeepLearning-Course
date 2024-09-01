@@ -34,16 +34,12 @@ class Train(object):
 		if not os.path.exists(self.training_models):
 			os.makedirs(self.training_models)
 		
-		self.configuration = GPT2Config.from_pretrained(model_path, 
-														output_hidden_states=False)
-		self.model = GPT2LMHeadModel.from_pretrained(model_path, 
-													 config=self.configuration)
+		self.configuration = GPT2Config.from_pretrained(model_path, output_hidden_states=False), out_dir=config["out_dir"]) # added
+		self.model = GPT2LMHeadModel.from_pretrained(model_path,  config=self.configuration)
 		self.model.resize_token_embeddings(tokenizer_len)
 		self.model.to(self.device)
 		
-		self.optimizer = AdamW(self.model.parameters(), 
-							   lr= 5e-4, 
-							   eps= 1e-8)
+		self.optimizer = AdamW(self.model.parameters(), lr= 5e-4, eps= 1e-8)
 		self.loss_fct = CrossEntropyLoss(ignore_index=ignore_index) #ignores padding token for loss calculation
 
 		self.gradient_accumulation_steps = 32
