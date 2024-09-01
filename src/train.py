@@ -50,9 +50,7 @@ class Train(object):
 		self.max_grad_norm = 1
 
 		# Create the learning rate scheduler. This changes the learning rate as the training loop progresses
-		self.scheduler = get_linear_schedule_with_warmup(self.optimizer, 
-													num_warmup_steps =  1e2, 
-													num_training_steps = train_loader_len * 50)
+		self.scheduler = get_linear_schedule_with_warmup(self.optimizer, num_warmup_steps =  1e2, num_training_steps = train_loader_len * 50)
 
 
 	'''----------------------------------------------------------------
@@ -102,8 +100,8 @@ class Train(object):
 		total_train_loss = 0
 
 		for step, batch in enumerate(train_dataloader):
-			self.model.  # put all gradients to zero 
-			shift_logits, shift_labels =  # prepare batch data
+			            self.optimizer.zero_grad()  # put all gradients to zero 
+            shift_logits, shift_labels =  self.process_train_batch(batch)# prepare batch data
 
 			loss = self.loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 			loss = loss/self.gradient_accumulation_steps
