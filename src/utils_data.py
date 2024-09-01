@@ -50,8 +50,8 @@ def process_dataframe(df, max_text, max_sum):
 	df['summary'] = df['summary'].apply(lambda x: short_text(x, max_sum))
 	df['text_len'] = df['text'].apply(lambda x: len(x.split()))
 	#print(df['summary'].str.split().str.len())
-	#df['summary'] = df['summary'].apply(lambda x: ' <CLS> ' + x) # do this step in data loader
-	#df['ts'] = df[['text', 'summary']].apply(lambda x: ''.join(x), axis=1)
+	df['summary'] = df['summary'].apply(lambda x: ' <CLS> ' + x) # do this step in data loader
+	df['ts'] = df[['text', 'summary']].apply(lambda x: ''.join(x), axis=1)
 	#print(df['ts'].str.split().str.len())
 
 	return df
