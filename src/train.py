@@ -34,7 +34,7 @@ class Train(object):
 		if not os.path.exists(self.training_models):
 			os.makedirs(self.training_models)
 		
-		self.configuration = GPT2Config.from_pretrained(model_path, output_hidden_states=False), out_dir=config["out_dir"]) # added
+		self.configuration = GPT2Config.from_pretrained(model_path, output_hidden_states=False, out_dir=config["out_dir"] )# added
 		self.model = GPT2LMHeadModel.from_pretrained(model_path,  config=self.configuration)
 		self.model.resize_token_embeddings(tokenizer_len)
 		self.model.to(self.device)
@@ -63,8 +63,7 @@ class Train(object):
 		labels = labels.to(self.device)
 
 		logits = self.model(inputs)[0]
-		
-		idx = batch[] # index of separator token
+		idx = batch['s_idx'] # index of separator token
 		#print('logits: {}'.format(logits.shape))
 		#print('idx: {}'.format(idx))
 		# only consider loss on reference summary just like seq2seq models
@@ -90,27 +89,42 @@ class Train(object):
 		return shift_logits, shift_labels
 
 
-	def train_loop(self, train_dataloader):
-		# TODO: Complete training loop
-		self.model.train()
-		total_train_loss = 0
+def train_loop(self, train_dataloader):
+    # Set the model to training mode
+    self.model.train()
+    
+    total_train_loss = 0
+    
+    for step, batch in enumerate(train_dataloader):
+        self.optimizer.zero_grad()  # Zero out the gradients
+        
+        # Prepare batch data
+        shift_logits, shift_labels = self.process_train_batch(batch)
+        
+        # Calculate the loss
+        loss = self.loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
+        loss = loss / self.gradient_accumulation_steps
+        
+        # Backpropagate the loss
+        loss.backward()
+        
+        # Clip gradients to prevent exploding gradients
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+        
+        # Perform a step of optimization
+        self.optimizer.step()
+        
+        # Update the learning rate scheduler
+        self.scheduler.step()
+        
+        # Accumulate the loss
+        batch_loss = loss.item()
+        total_train_loss += batch_loss
+    
+    return total_train_loss
 
-		for step, batch in enumerate(train_dataloader):
-			            self.optimizer.zero_grad()  # put all gradients to zero 
-            shift_logits, shift_labels =  self.process_train_batch(batch)# prepare batch data
 
-			loss = self.loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-			loss = loss/self.gradient_accumulation_steps
-			loss.backward() 
-			torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)       
-			self.optimizer.step()
-			self.scheduler.step()
-			batch_loss = loss.item()
-			total_train_loss += batch_loss
-
-		return total_train_loss
-
-	def eval_loop(self, val_dataloader):
+def eval_loop(self, val_dataloader):
 		self.model.eval()
 		total_eval_loss = 0
 		
@@ -124,15 +138,15 @@ class Train(object):
 		return total_eval_loss
 
 
-	def average_loss(self, total_loss, size):
+def average_loss(self, total_loss, size):
 		return total_loss / size
 
 
-	def save_model(self, path):
+def save_model(self, path):
 		model_to_save = self.model.module if hasattr(self.model, 'module') else self.model  # Take care of distributed/parallel training
 		model_to_save.save_pretrained(path)
 
-	def model_params(self):
+def model_params(self):
 
 		name = "params_" + str(int(time.time())) + ".txt"
 		file = os.path.join(self.config.out_dir, name)
@@ -154,7 +168,7 @@ class Train(object):
 			f.write("{:<55} {:>12}\n".format(p[0], str(tuple(p[1].size()))))	
 		f.close()
 
-	def train_model(self, train_dataloader, val_dataloader):
+def train_model(self, train_dataloader, val_dataloader):
 		'''----------------------------------------------------------------
 		'''
 		epochs = 50
