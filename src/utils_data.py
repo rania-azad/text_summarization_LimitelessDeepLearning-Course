@@ -13,20 +13,21 @@ from torchvision import transforms, utils
 
 # TODO: Complete the dataset definition
 class GPT2Dataset(Dataset):
- def __init__(self, encodings, sum_idx):
-        self.encodings = encodings  # List of dictionaries with 'input_ids' and 'attention_mask'
-        self.sum_idx = sum_idx  # List of indices or lengths for additional processing
-    
+ def __init__(self, df, max_length=100):
+    #self.encodings = df['encodings'].to_list()
+    self.input_ids = df['input_ids'].to_list()
+    self.attention_mask = df['attention_mask'].to_list()
+    self.sum_idx = df['text_len'].to_list()
+    self.max_length = max_length
+  
 def __len__(self):
-        return len(self.sum_idx)
+    return len(self.sum_idx)
     
 def __getitem__(self, idx):
-        # Extract encodings for the given index
-        encoding = self.encodings[idx]
-        
+              
         # Convert input_ids and attention_mask to tensors
-        text = torch.tensor(encoding['input_ids'], dtype=torch.long)
-        attn_mask = torch.tensor(encoding['attention_mask'], dtype=torch.long)
+        input_ids = torch.tensor(self.input_ids[idx], dtype=torch.long)
+        attn_mask = torch.tensor(self.attention_mask[idx], dtype=torch.long)
         
         # Compute s_idx (you might adjust this based on your specific needs)
         s_idx = self.sum_idx[idx] + 2  # Example adjustment: adding 2 for special tokens
@@ -41,7 +42,7 @@ def get_gpt2_dataset(train, val):
 
   return train_dataset, val_dataset
 
-
+#shorten the text that bigger size that can support
 def short_text(text, len):
 	text = text.split()
 	#print(len(text))
@@ -50,15 +51,15 @@ def short_text(text, len):
 	s_text = ' '.join(s_text)
 	return  s_text
 
-
+# fun that verify the size of the vector, f it bigger then apply short text
 def process_dataframe(df, max_text, max_sum):
 
 	df['text'] = df['text'].apply(lambda x: short_text(x, max_text))
 	df['summary'] = df['summary'].apply(lambda x: short_text(x, max_sum))
 	df['text_len'] = df['text'].apply(lambda x: len(x.split()))
 	#print(df['summary'].str.split().str.len())
-	df['summary'] = df['summary'].apply(lambda x: ' <CLS> ' + x) # do this step in data loader
-	df['ts'] = df[['text', 'summary']].apply(lambda x: ''.join(x), axis=1)
+	#df['summary'] = df['summary'].apply(lambda x: ' <CLS> ' + x) # do this step in data loader
+	#df['ts'] = df[['text', 'summary']].apply(lambda x: ''.join(x), axis=1)
 	#print(df['ts'].str.split().str.len())
 
 	return df
