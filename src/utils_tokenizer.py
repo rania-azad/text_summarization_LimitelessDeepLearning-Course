@@ -19,9 +19,11 @@ def apply_tokenizer(tokenizer, text, summary, max_len):
 
 
 def tokenize_text(tokenizer, df, max_len):
-    df['encodings'] = df.apply(lambda x : apply_tokenizer(tokenizer, x['text'], x['summary'], max_len), axis=1)
-    #encodings is dict type: contains input_ids and attention_mas
-    
+    df['encodings'] = df.apply(lambda x : apply_tokenizer(tokenizer, row['text'], row['summary'], [input_ids],max_len), axis=1)
+    #encodings is dict type: contains input_ids and attention_mask
+    df['input_ids'] = df.apply(lambda row: apply_tokenizer(tokenizer, row['text'], row['summary'], max_len)['input_ids'].squeeze(0).tolist(), axis=1)
+    df['attention_mask'] = df.apply(lambda row: apply_tokenizer(tokenizer, row['text'], row['summary'], max_len)['attention_mask'].squeeze(0).tolist(), axis=1)
+
     del df['text']
     del df['summary']
 
@@ -30,5 +32,7 @@ def tokenize_text(tokenizer, df, max_len):
 def tokenize_dataset(tokenizer, train, val, test, max_len):
 	train = tokenize_text(tokenizer, train, max_len)
 	val = tokenize_text(tokenizer, val, max_len)
-	
-	return train, val, test
+ 
+ # add
+test =tokenize_text(tokenizer, test, max_len)
+return train, val, test
